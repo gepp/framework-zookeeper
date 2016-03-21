@@ -1,4 +1,5 @@
 package com.jdk2010.framework.zookeeper.client.support;
+
 import java.util.List;
 
 import org.apache.curator.RetryPolicy;
@@ -10,9 +11,16 @@ import org.apache.curator.framework.api.ExistsBuilder;
 import org.apache.curator.framework.api.GetChildrenBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.SetDataBuilder;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.StringUtils;
 
@@ -20,7 +28,11 @@ import com.jdk2010.framework.zookeeper.client.ZookeeperClient;
 import com.jdk2010.framework.zookeeper.exception.MyZookeeperException;
 
 public class DefaultCuratorZookeeperClient implements ZookeeperClient, InitializingBean {
+    
+    Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    
+    
     @Override
     public String getConfig(String path) {
         GetDataBuilder dataBuilder = client.getData();
@@ -40,8 +52,16 @@ public class DefaultCuratorZookeeperClient implements ZookeeperClient, Initializ
 
     @Override
     public boolean createConfig(String path, String value) {
+        return createConfig(path, value, true);
+    }
+
+    @Override
+    public boolean createConfig(String path, String value, boolean type) {
         boolean flag = true;
         CreateBuilder builder = client.create();
+        if (type == false) {
+            builder.withMode(CreateMode.EPHEMERAL_SEQUENTIAL);
+        }
         builder.creatingParentsIfNeeded();
         try {
             builder.forPath(path, value.getBytes());
@@ -117,6 +137,12 @@ public class DefaultCuratorZookeeperClient implements ZookeeperClient, Initializ
         }
         return nodelist;
     }
+    
+    @Override
+    public boolean register(String regContent) {
+        return createConfig(zkRegPathPrefix, regContent, false);
+
+    }
 
     public String getZkHost() {
         return zkHost;
@@ -141,8 +167,28 @@ public class DefaultCuratorZookeeperClient implements ZookeeperClient, Initializ
     public void setConnectionTimeout(Integer connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
     }
+    public String getRegisterHost() {
+        return registerHost;
+    }
+
+    public void setRegisterHost(String registerHost) {
+        this.registerHost = registerHost;
+    }
+     
+    public String getZkRegPathPrefix() {
+        return zkRegPathPrefix;
+    }
+
+    public void setZkRegPathPrefix(String zkRegPathPrefix) {
+        this.zkRegPathPrefix = zkRegPathPrefix;
+    }
+
 
     private String zkHost;
+    
+    private String zkRegPathPrefix;
+    
+    private String registerHost;
 
     private Integer sessionTimeout;
 
@@ -155,11 +201,16 @@ public class DefaultCuratorZookeeperClient implements ZookeeperClient, Initializ
         if (StringUtils.isEmpty(zkHost)) {
             throw new MyZookeeperException("zkHost不能为空！");
         }
+        
         if (StringUtils.isEmpty(sessionTimeout)) {
             sessionTimeout = 5000;
         }
         if (StringUtils.isEmpty(connectionTimeout)) {
             connectionTimeout = 3000;
+        }
+        
+        if(StringUtils.isEmpty(zkRegPathPrefix)){
+            zkRegPathPrefix="/zkRegHosts/zkRegPathPrefix";
         }
         
         // 重试策略可以实现该接口。通过自定义规则，进行重试
@@ -179,8 +230,15 @@ public class DefaultCuratorZookeeperClient implements ZookeeperClient, Initializ
        .retryPolicy(retryPolicy)
        .build();
        client.start();  
+       
+       //如果节点不为空,则注册中心节点
+       if(!StringUtils.isEmpty(registerHost)){
+           register(registerHost);
+           logger.info("向zookeeper中心注册节点: "+zkRegPathPrefix+" -->"+registerHost);
+       }
+      
+       
     }
 
-    
     
 }

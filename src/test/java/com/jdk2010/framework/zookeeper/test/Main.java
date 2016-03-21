@@ -11,9 +11,7 @@ public class Main {
     public static void main(String[] args) {
         BeanFactory factory = new ClassPathXmlApplicationContext("applicationContext.xml");
         ZookeeperClient client=factory.getBean(ZookeeperClient.class);
-       // client.createConfig("/gpp/aaa/bbb","哈哈");
-       // System.out.println(client.getConfig("/gpp/aaa/bbb"));
-        client.deleteConfig("/gpp/aaa/ccc");
-        
+        client.createConfig("/gpp/test", "我的");
+        while(true);
     }
 }
