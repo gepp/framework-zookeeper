@@ -2,6 +2,8 @@ package com.jdk2010.framework.zookeeper.client;
 
 import java.util.List;
 
+import org.apache.curator.framework.CuratorFramework;
+
 public interface ZookeeperClient {
     /**
      * 获取配置
@@ -42,5 +44,7 @@ public interface ZookeeperClient {
      * 注册服务
      */
     public boolean register(String regContent);
+    
+    public CuratorFramework getClient();
 
 }

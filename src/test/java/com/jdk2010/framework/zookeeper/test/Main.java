@@ -1,17 +1,48 @@
 package com.jdk2010.framework.zookeeper.test;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.jdk2010.framework.zookeeper.client.ZookeeperClient;
 
 public class Main {
-    
-    
-    public static void main(String[] args) {
-        BeanFactory factory = new ClassPathXmlApplicationContext("applicationContext.xml");
-        ZookeeperClient client=factory.getBean(ZookeeperClient.class);
+    BeanFactory factory = new ClassPathXmlApplicationContext("applicationContext.xml");
+    ZookeeperClient client = factory.getBean(ZookeeperClient.class);
+    InterProcessMutex lock = new InterProcessMutex(client.getClient(), "/global_lock");
+
+    public void test1() {
         client.createConfig("/gpp/test", "我的");
-        while(true);
+    }
+
+    public void testLock() {
+        Executor pool = Executors.newFixedThreadPool(10);
+        for (int i = 0; i < 10; i++) {
+            pool.execute(new Runnable() {
+                public void run() {
+                    try {
+                        lock.acquire();
+                        System.out.println(Thread.currentThread().getName());
+                        TimeUnit.SECONDS.sleep(5);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        try {
+                            lock.release();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static void main(String[] args) {
+        new Main().testLock();
     }
 }

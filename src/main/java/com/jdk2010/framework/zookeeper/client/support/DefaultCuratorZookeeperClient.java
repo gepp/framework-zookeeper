@@ -26,6 +26,7 @@ import org.springframework.util.StringUtils;
 
 import com.jdk2010.framework.zookeeper.client.ZookeeperClient;
 import com.jdk2010.framework.zookeeper.exception.MyZookeeperException;
+import com.jdk2010.framework.zookeeper.listener.ZkConnectionStateListener;
 
 public class DefaultCuratorZookeeperClient implements ZookeeperClient, InitializingBean {
     
@@ -196,6 +197,11 @@ public class DefaultCuratorZookeeperClient implements ZookeeperClient, Initializ
 
     private CuratorFramework client;
 
+    
+    public CuratorFramework getClient() {
+        return client;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         if (StringUtils.isEmpty(zkHost)) {
@@ -234,6 +240,8 @@ public class DefaultCuratorZookeeperClient implements ZookeeperClient, Initializ
        //如果节点不为空,则注册中心节点
        if(!StringUtils.isEmpty(registerHost)){
            register(registerHost);
+           ZkConnectionStateListener stateListener=new ZkConnectionStateListener(zkRegPathPrefix, registerHost);
+           client.getConnectionStateListenable().addListener(stateListener);
            logger.info("向zookeeper中心注册节点: "+zkRegPathPrefix+" -->"+registerHost);
        }
       
