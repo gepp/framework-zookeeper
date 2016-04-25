@@ -1,4 +1,4 @@
-package com.jdk2010.framework.zookeeper.listener;
+package com.jdk2010.framework.zookeeper.listener.registry;
 
 import java.util.concurrent.TimeUnit;
 
@@ -10,14 +10,18 @@ import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZkConnectionStateListener implements ConnectionStateListener {
+/**
+ * 自动重新注册
+ *
+ */
+public class ZkServerRegistryListener implements ConnectionStateListener {
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private String zkRegPathPrefix;
     private String regContent;
 
-    public ZkConnectionStateListener(String zkRegPathPrefix, String regContent) {
+    public ZkServerRegistryListener(String zkRegPathPrefix, String regContent) {
         this.zkRegPathPrefix = zkRegPathPrefix;
         this.regContent = regContent;
     }
@@ -36,14 +40,15 @@ public class ZkConnectionStateListener implements ConnectionStateListener {
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                    logger.error("监听异常："+e.getMessage());
+                    logger.error("listen throws exception:"+e.getMessage());
                     break;
                 } catch (Exception e) {
                     e.printStackTrace();
-                    logger.error("监听异常："+e.getMessage());
+                    logger.error("listen throws exception:"+e.getMessage());
                     break;
                 }
             }
         }
+        
     }
 }

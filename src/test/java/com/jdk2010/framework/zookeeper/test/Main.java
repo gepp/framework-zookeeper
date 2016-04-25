@@ -15,8 +15,12 @@ public class Main {
     ZookeeperClient client = factory.getBean(ZookeeperClient.class);
     InterProcessMutex lock = new InterProcessMutex(client.getClient(), "/global_lock");
 
-    public void test1() {
+    public void test1() throws InterruptedException {
+        
         client.createConfig("/gpp/test", "我的");
+        while(true){
+            Thread.sleep(1000);
+        }
     }
 
     public void testLock() {
@@ -42,7 +46,9 @@ public class Main {
         }
     }
 
-    public static void main(String[] args) {
-        new Main().testLock();
+    public static void main(String[] args) throws InterruptedException {
+        Main main=new Main();
+        main.test1();
+//        main.testLock();
     }
 }

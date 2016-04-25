@@ -23,7 +23,6 @@
 
 	<bean id="zookeeperClient" class="com.jdk2010.framework.zookeeper.client.support.DefaultCuratorZookeeperClient">
 		<property name="zkHost" value="${zkHost}"></property>
-		<property name="registerHost" value="${registerHost}"></property>
 	</bean>
 
 </beans>

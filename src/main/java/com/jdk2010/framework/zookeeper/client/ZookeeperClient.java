@@ -44,7 +44,19 @@ public interface ZookeeperClient {
      * 注册服务
      */
     public boolean register(String regContent);
-    
+
+    /**
+     * 发现服务
+     * 
+     * @return
+     */
+    public String discovery();
+
     public CuratorFramework getClient();
 
+    /**
+     * 客户端获取所有的服务器列表
+     * @return
+     */
+    public String getServerNameByType(String type);
 }
